@@ -1,0 +1,584 @@
+---
+title: "$Project$ $2$"
+author: "$Name:$ $Wesley$ $Newcomb$ \n $Partner:$ $Diva$ $Medina$ $Camp$"
+#date: "$May$ $19$, $2023$"
+date: "$`r Sys.Date()`$"
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+Instructor: Troy Alva, PhD
+Class: R PROGRAMMING (CSIT_165)
+Palomar ID: 001010211
+Section: 32006
+Adjunct: Instructor Computer Science and Information Technology
+
+header-includes:
+  - \usepackage{booktabs}
+  - \usepackage{longtable}
+  - \usepackage{array}
+  - \usepackage{multirow}
+  - \usepackage{wrapfig}
+  - \usepackage{float}
+  - \usepackage{colortbl}
+  - \usepackage{pdflscape}
+  - \usepackage{tabu}
+  - \usepackage{threeparttable}
+  - \usepackage{threeparttablex}
+  - \usepackage[normalem]{ulem}
+  - \usepackage{makecell}
+  - \usepackage{xcolor}
+---
+
+
+```{r setup, echo=TRUE, eval=TRUE}
+# Load necessary packages for project
+# These packages are not necessary to complete the assignment and or only used to provide an example.
+packages <- c("knitr", "kableExtra", "magrittr" ,"readr" ,"geosphere", "RCurl", "plyr", "dplyr", "ggplot2", "tidyr", "stringr", "tidyverse", "cowplot", "scales", "numform", "leaflet","tinytex")
+
+install_me <- packages[!(packages %in% installed.packages()[, "Package"])]
+if (length(install_me)) install.packages(install_me)
+
+library(knitr)
+#library(kableExtra)
+library(magrittr)
+library(readr)
+library(geosphere)
+library(RCurl)
+library(plyr)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(stringr)
+library(tidyverse)
+library(cowplot)
+library(scales)
+library(numform)
+library(leaflet)
+library(tinytex)
+```
+
+### Background
+> The World Health Organization has recently employed a new data science initiative, *CSIT-165*, that uses data science to characterize pandemic diseases. 
+*CSIT-165* disseminates data driven analyses to global decision makers.
+
+> *CSIT-165* is a conglomerate comprised of two fabricated entities: *Global Health Union (GHU)* and *Private Diagnostic Laboratories (PDL)*. 
+Your and your partner's role is to play a data scientist from one of these two entities.
+
+### Data
+> [2019 Novel Coronavirus COVID-19 (2019-nCoV) Data Repository by John Hopkins CSSE](https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_time_series)
+
+> Data for 2019 Novel Coronavirus is operated by the John Hopkins University Center for Systems Science and Engineering (JHU CSSE).
+Data includes daily time series CSV summary tables, including confirmations, recoveries, and deaths. 
+Country/region are countries/regions hat conform to World Health Organization (WHO).
+Lat and Long refer to coordinates references for the user. 
+Date fields are stored in MM/DD/YYYY format.
+
+### Instructions
+> The Global Health Initiative has recently employed a new data science response team, CSIT-165, that uses data science to characterize pandemic diseases. CSIT-165 disseminates data driven analyses to global and local decision makers.
+
+> CSIT-165 is a conglomerate comprised of two fabricated entities: World Health Organization (WHO) and U.S. Pandemic Response Team (USPRT). Your and your partner’s role is to play a data scientist from one of these two entities. Discuss with your partner to decide who will be part of WHO and USPRT.
+
+> Getting Started
+One project member per group must create a new repository on GitHub. Initialize this repository with a readme.md file that lists each member of the group. If your group decides to collaborate using a centralized workflow (recommended), then the project member that created the repository must declare their partners as collaborators in GitHub. Each project member will clone this repository onto their machine using RStudio. In RStudio, create a project from version control with GitHub using the HTTP address of the repository created by project member.
+
+> All project members must first contribute to analyses by uploading data sets respective to the entity they belong to in the CSIT-165 data science response team. If you belong to WHO then you are responsible for providing code necessary to download the global data sets and if you are assigned to USPRT then you are responsible for providing code necessary to download the US data sets.
+
+# Objectives
+> This project will encompass many of the lessons we have learned throughout the course, including interactive visualizations. RMarkdown files must be written such that each time you render the document it will download the necessary data sets for analysis. Please render the RMarkdown file the day it is due to reflect the most recent data sets. With this added functionality, your code must be able to analyze the datasets regardless of the date you render your document. Unlike others projects in the past, you will have the ability to solve these problems using any method you choose. Be careful, however, with the methods you use as you will be graded on the appropriateness of your solution and how well you execute your desired algorithm. If there appears to be a logic fail in how you executed your code, you will be penalized. This is an opportunity to really showcase your new found skills in data science with R!
+
+## Project Objectives
+
+```{r data, echo=TRUE, eval=TRUE}
+#Global data sets downloaded on 05/28/2021
+confirmed <- read_csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv")
+recovered <- read_csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv")
+deaths <- read_csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv")
+
+#US data sets downloaded on 05/28/2021
+deaths_US <- read_csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_US.csv")
+confirmed_US <- read_csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv")
+
+```
+
+### Objective 1 - Global map
+> Global Map
+You are tasked to create a world map to gain an appreciation for where the most occurrences of COVID-19 confirmations and deaths are located.
+
+> Create this map using leaflet for the most recent date as shown below. For this map, sum the confirmations and deaths of provinces into one value to depict the total number for the country they belong to. When creating a marker for each country in the map, calculate lat and long as the mean values for the provinces that make up each country.
+
+> Customize the map to reflect the differences in magnitude for confirmations and deaths. In the example map below, circle markers that are blue represent low values, gray represents neutral values, and red represents high values. Low, middle, and high values were categorized to aesthetically map the markers based on their probabilistic distribution using the quartile function. You may use any method you like so that it is logical and allows visualization of value intensity. As well, customize the map to include hover labels that indicate country names and popup labels to show the value of confirmations and deaths for that country. For extra help using leaflet, consult this website along with the information provided in your textbooks.
+
+```{r obj1, echo=TRUE, eval=TRUE}
+# Copyright 2023, Diva Medina Camp. 
+# Objective 1 - Global Map
+
+# Create map using leaflet for the most recent date. 
+
+# For this map, sum the confirmations and deaths of provinces into one value 
+# to depict the total number for the country they belong to. 
+
+# When creating a marker for each country in the map, calculate lat and long as 
+# the mean values for the provinces that make up each country.
+
+# Customize the map to reflect the differences in magnitude for confirmations and 
+# deaths. 
+
+# In the example map below, circle markers that are blue represent low values, 
+# gray represents neutral values, and red represents high values. 
+
+# Low, middle, and high values were categorized to aesthetically map the markers based on their 
+# probabilistic distribution using the quartile function. 
+
+# You may use any method you like so that it is logical and allows visualization of value intensity. 
+
+# customize the map to include hover labels that indicate country names 
+# and popup labels to show the value of confirmations and deaths for that country. 
+
+# Extract data of global confirmed COVID cases
+confirmed_COVID_global <- 
+  read.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv", stringsAsFactors=FALSE)
+
+#extract data of global COVID deaths
+deaths_COVID_global <- 
+  read.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv", stringsAsFactors=FALSE)
+
+#variable holding province names and latest day numbers
+lastday_confirmed <- 
+  select(confirmed_COVID_global, Province.State, Country.Region, Lat, Long, "Latest_Day"=tail(names(confirmed_COVID_global),1))
+
+#variable holding province names and latest day numbers
+lastday_deaths <-
+  select(deaths_COVID_global, Province.State, Country.Region, Lat, Long, "Latest_Day"=tail(names(deaths_COVID_global),1))
+
+#Create dataframe containing sum of deaths and confirmations by province
+COVID_dataSum <- 
+  lastday_confirmed %>% inner_join(lastday_deaths, by=c("Province.State", "Country.Region", "Lat", "Long")) %>%
+  mutate(All_Latest = rowSums(across(c(Latest_Day.x, Latest_Day.y)))) %>%
+  rename("Last_Confirm"="Latest_Day.x", "Last_Deaths"="Latest_Day.y") 
+  
+#remove unnecessary data entries that involve Olympics or unknow origin
+COVID_dataSum <- COVID_dataSum[-c(54, 90, 245, 286),]
+
+#Create dataframe which averages lats and longs, and adds confirmations and deaths.
+COVID_dataSum_country <- 
+  group_by(COVID_dataSum, Country.Region) %>%
+  summarize(mean(Lat), mean(Long), sum(Last_Confirm), sum(Last_Deaths), sum(All_Latest)) %>%
+  rename("lat"="mean(Lat)", "long"="mean(Long)", 
+         "Confirmations"="sum(Last_Confirm)", "Deaths"="sum(Last_Deaths)", "All"="sum(All_Latest)")
+  
+#format numeric data to have commas
+COVID_dataSum_country$Confirmations <- prettyNum(COVID_dataSum_country$Confirmations, big.mark=",", scientific = FALSE)
+COVID_dataSum_country$Deaths <- prettyNum(COVID_dataSum_country$Deaths, big.mark=",", scientific = FALSE)
+
+
+#color palette function
+pal = colorQuantile(palette=c("dodgerblue3", "grey35", "red"), domain=COVID_dataSum_country$All, n=5)
+
+#Generate Map 
+leaflet(COVID_dataSum_country) %>%
+  addTiles() %>%
+  setView(lng=0, lat=0, zoom=1) %>%
+  addCircleMarkers(lng=~long, lat=~lat, radius=4, 
+                   label=~Country.Region, color=~pal(COVID_dataSum_country$All), 
+                   group="Confirmations",
+                   popup=paste("Confirmations: ", as.character(COVID_dataSum_country$Confirmations))) %>%
+  addCircleMarkers(lng=~long, lat=~lat, radius=4, 
+                   label=~Country.Region, color=~pal(COVID_dataSum_country$All), 
+                   group="Deaths",
+                   popup=paste("Deaths: ", as.character(COVID_dataSum_country$Deaths))) %>%
+  addLayersControl(overlayGroups = c("Confirmations", "Deaths"),
+                   options = layersControlOptions(collapsed = FALSE))
+
+#data.frame(COVID_dataSum_country)
+```
+
+The USA, India and France have the highest number of confirmed cases since 05/21/2023. The three countries might also have the higher number of recoveries, but the USA has not reported recoveries since Dec 2022. France and India are seen as having the highest number of recoveries on the map. The map also indicates the USA and France have had the highest number of reported deaths. 
+
+### Objective 2 - Narrowing Down Hot Spots
+> Narrowing Down Hot Spots
+Seeing the global map of COVID-19 cases results in the stark realization that some countries are more affected than others. In order to narrow down your studies, create a table using kable from knitr listing the top countries as far as confirmations and deaths (sum values for provinces of the same country into one value and show the country only). Now that we are using RMarkdown to create HTML files, we have much more options for how we display our table. For reference on how to customize tables using knitr, visit this website. Consult the table below for an example of a customized table ranking cases by country. While it is not required to replicate this table exactly, it would be a fantastic challenge to show off your knitr prowess.
+
+<!--```{r libraries, include=FALSE}
+
+library(dplyr)
+library(knitr)
+library(kableExtra)
+library(tidyverse)
+library(tinytex)
+```-->
+
+
+```{r data_prep, echo=TRUE, eval=TRUE}
+# Copyright 2023, Diva Medina Camp.
+# Extract data of global confirmed COVID cases
+confirmed_COVID_global <- 
+  read.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv", stringsAsFactors=FALSE)
+
+#extract data of global COVID deaths
+deaths_COVID_global <- 
+  read.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv", stringsAsFactors=FALSE)
+
+#variable holding dataframe with necessary columns for confirmed
+lastday_confirmed <- 
+  select(confirmed_COVID_global, Province.State, Country.Region, 
+         "Latest_Day"=tail(names(confirmed_COVID_global),1))
+
+lastday_confirmed <- lastday_confirmed[-c(107 ,245 ,286),]
+
+#variable holding dataframe with necessary columns for deaths
+lastday_deaths <-
+  select(deaths_COVID_global, Province.State, Country.Region, 
+         "Latest_Day"=tail(names(deaths_COVID_global),1))
+
+#remove unnecesary data points like Olympics and cruise ship.
+lastday_deaths <- lastday_deaths[-c(107 ,245 ,286),]
+
+#Make dataframe for confirmations data. Group by country, sum, add commas to numbers.
+COVID_confirmed <- lastday_confirmed %>%
+  group_by(Country.Region) %>%
+  summarize(sum(Latest_Day)) %>%
+  rename("Counts"="sum(Latest_Day)", "Country"="Country.Region") %>%
+  arrange(desc(Counts))
+
+COVID_confirmed$Counts <- prettyNum(COVID_confirmed$Counts, big.mark = ',', scientific=FALSE)
+
+#Make dataframe for deaths data. Group by country, sum, arrange in desc order, add commas to numbers.
+COVID_deaths <- lastday_deaths %>%
+  group_by(Country.Region) %>%
+  summarize(sum(Latest_Day)) %>%
+  rename("Counts"="sum(Latest_Day)", "Country"="Country.Region") %>%
+  arrange(desc(Counts))
+
+COVID_deaths$Counts <- prettyNum(COVID_deaths$Counts, big.mark = ',', scientific=FALSE)
+
+#Add rank numbers to table, and order columns.
+COVID_confirmed <- COVID_confirmed %>% mutate(Rank = row_number()) 
+
+col_order <- c(3,1,2)
+COVID_confirmed <- COVID_confirmed[, col_order]
+
+```
+
+
+```{r table, echo=TRUE, eval=TRUE}
+# Combine confirmations and deaths tables.
+COVID_Table <- cbind(COVID_confirmed, COVID_deaths)
+
+# Format table
+COVID_Table %>%
+  kbl(align=c(rep("r",1), rep("l",1), rep("r",1), rep("l",1), rep("r",1)), 
+      caption = "Table of Top Countries") %>%
+  kable_styling(bootstrap_options = "striped", "responsive",
+                full_width = FALSE) %>%
+  add_header_above(c(" " = 1, "Confirmations" = 2, "Deaths" = 2), font_size="large") %>%
+  scroll_box(width = "800px", height = "550px")
+
+```
+
+Not surprising to see the USA, India and France amongst the top 3 countries for confirmed cases and deaths. The lack of reported recoveries from the USA has resulted in Turkey ranking amongst the top 3 for recoveries. It is interesting to see the trend of large countries like Russia, Mexico and the UK at the top 10 for reported deaths. 
+
+### Objective 3 - Zooming Into Our State and California
+> Zooming Into Our State
+After reading the top tables, you are stunned! The US overtakes every other country in terms of COVID-19 confirmations. As such, you are concerned about the state you live in and would like to understand how COVID-19 events have shaped the trajectory of the disease. Create two scatter plots to gain a better understanding. The first scatter plot should be California’s trajectory for confirmations. The second scatter plot should show California’s top three city trajectories for confirmations. You are interested in studying how the vaccine affected the number of confirmations. The Moderna vaccine was first available as an emergency use authorized (EUA) vaccine and required two shots spaced six weeks apart. Indicate on the plots the day the second dosage was given to those that received the first dosage the day Moderna was EUA (January 29th, 2021). As a diligent scientist that knows that new COVID variants have mutations in the spike protein (the region that the vaccine was developed for), you also want to study how confirmation rates change as new variants become the dominant infectious strain. Indicate on the plots when the delta and omicron variants became the dominant strain in California (May 11th, 2021 and November 26th, 2021 respectively). In the example below, the function plot_grid from the R package cowplot was to organize the graphs into a grid to more easily compare statewide vs top city plots.
+
+<!-- Chart 1 -->
+
+```{r obj3-code1, echo=TRUE, eval=TRUE}
+# creates new data frame for only CA confirmed cases
+dfConfirmedCAChartData <- confirmed_US %>%
+  
+  # removes all columns with numeric values that aren't case counts
+  select(-(`UID`)) %>%
+  select(-(`code3`)) %>%
+  select(-(`FIPS`)) %>%
+  select(-(`Lat`)) %>%
+  select(-(`Long_`)) %>%
+  
+  # retains only the California row
+  filter(`Province_State` == "California") %>%
+  
+  # groups by State
+  group_by(`Province_State`) %>%
+  
+  # totals all columns that are numeric
+  summarise_if(is.numeric, sum) %>%
+
+  # gathers data into long form
+  gather(key=Date, value=`Confirmed Cases`, -`Province_State`) %>%
+  
+  # converts the date column into real dates for the chart
+  mutate(`Date`=as.Date(`Date`, format = "%m/%d/%y"))
+```
+
+
+```{r obj3-code2, echo=TRUE, eval=TRUE}
+# creates new data frame for only CA deaths
+dfDeathsCAChartData <- deaths_US %>%
+  
+  # removes all columns with numeric values that aren't case counts
+  select(-(`UID`)) %>%
+  select(-(`code3`)) %>%
+  select(-(`FIPS`)) %>%
+  select(-(`Lat`)) %>%
+  select(-(`Long_`)) %>%
+  select(-(`Population`)) %>%
+  
+  # retains only the California row
+  filter(`Province_State` == "California") %>%
+  
+  # groups by State
+  group_by(`Province_State`) %>%
+  
+  # totals all columns that are numeric
+  summarise_if(is.numeric, sum) %>%
+  
+  # gathers data into long form
+  gather(key=Date, value=`Deaths`, -`Province_State`) %>%
+  
+  # converts the date column into real dates for the chart
+  mutate(`Date`=as.Date(`Date`, format = "%m/%d/%y"))
+```
+
+Below is a chart showing the deaths and confirmed cases for the state of California over time. The black vertical line provides a visual representation of when the first shutdowns occurred on March 19, 2020.
+
+```{r obj3-chart1, including=FALSE, echo=TRUE, eval=FALSE}
+obj4chart1colors <- c("Confirmed Cases" = "blue", "Deaths" = "red")
+
+# these are two disparate time series glued together
+ggplot() +
+  geom_line(data = dfConfirmedCAChartData,
+            aes(x = `Date`, y = `Confirmed Cases`,
+            color = "Confirmed Cases")) +
+  geom_line(data = dfDeathsCAChartData,
+            aes(x = `Date`, y = `Deaths`,
+            color = "Deaths")) +
+  scale_y_continuous(labels = scales::comma) +
+  labs(x = "Date", y = "Cases", color = "California Total") +
+  ggtitle("California's Trajectory for COVID-19") +
+  scale_color_manual(values = obj4chart1colors) +
+  geom_vline(xintercept = as.numeric(as.Date("2020-03-19")),
+             color = "black")
+```
+
+
+<!-- Chart 2 -->
+
+```{r obj3-code3, echo=TRUE, eval=TRUE}
+# reuses earlier data frame for only CA confirmed cases by county
+dfConfirmedCAChartData <- confirmed_US %>%
+  
+  # removes all columns with numeric values that aren't case counts
+  select(-(`UID`)) %>%
+  select(-(`code3`)) %>%
+  select(-(`FIPS`)) %>%
+  select(-(`Lat`)) %>%
+  select(-(`Long_`)) %>%
+  
+  # retains only the California rows
+  filter(`Province_State` == "California") %>%
+  
+  # retains only the rows for San Diego, Riverside, LA
+  filter(`Admin2` %in%
+           c("San Diego", "Riverside", "Los Angeles")) %>%
+  
+  # groups by County (aka Admin2)
+  group_by(`Admin2`) %>%
+  
+  # totals all columns that are numeric
+  summarise_if(is.numeric, sum) %>%
+
+  # gathers data into long form
+  gather(key=Date, value=`Confirmed Cases`, -`Admin2`) %>%
+  
+  # converts the date column into real dates for the chart
+  mutate(`Date`=as.Date(`Date`, format = "%m/%d/%y"))
+```
+
+Below is a chart showing the confirmed cases over time, only for the counties of Los Angeles, Riverside, and San Diego. The black vertical line provides a visual representation of when the first shutdowns occurred on March 19, 2020.
+
+
+```{r obj3-chart2, including=FALSE, echo=TRUE, eval=FALSE}
+c1 <- ggplot(dfConfirmedCAChartData,
+       aes(x = `Date`, y = `Confirmed Cases`,
+           group = `Admin2`)) +
+  geom_line(aes(color=`Admin2`), size = 2) +
+  ggtitle("") +
+  scale_y_continuous(labels = scales::comma) +
+  labs(x = "Date", y = "Cases", color = "")
+#+
+  #geom_vline(xintercept = as.numeric(as.Date("2020-03-19")),
+  #           color = "black")
+
+## plotting vertical lines
+c2 <- c1 + 
+ # geom_vline(aes(xintercept=as.Date("2020-03-19")),color="white", linetype = "longdash") +
+  
+geom_vline(aes(xintercept=as.Date("2021-03-19")),color="darkgreen", linetype = "longdash") + geom_vline(aes(xintercept=as.Date("2021-07-04")),color="darkred", linetype = "longdash") + geom_vline(aes(xintercept=as.Date("2021-11-20")),color="brown", linetype = "longdash")
+
+
+## labeling vertical lines
+c3 <- c2 + geom_text(aes(as.Date("2020-03-19"), 2500000, label ="", hjust="right"))  + geom_text(aes(as.Date("2021-01-29"), 2500000, label ="", hjust="right")) + geom_text(aes(as.Date("2021-07-04"), 2500000, label ="", hjust="right")) + geom_text(aes(as.Date("2021-12-20"), 2500000, label ="", hjust="right"))
+
+## adding tick marks
+c4 <- c3 + scale_x_continuous(breaks = c(as.Date("2020-03-19"), as.Date("2021-01-29"), as.Date("2021-07-04"), as.Date("2021-12-20")), labels = c("2020-07", "2021-01", "2021-07", "2022-01")) 
+plot_grid(c4, ncol = 1, align = "h")
+```
+
+
+```{r obj3-chart3, echo=TRUE, eval=TRUE}
+## Isolate CA confirmations
+confirmed_US %>% select(-c(UID, iso2, iso3, code3, FIPS, Admin2, Country_Region, Lat, Long_, Combined_Key)) %>% filter(Province_State == "California") %>% data.frame() -> CA
+CA %<>% select(-Province_State)
+colnames(CA) <- gsub("X","",colnames(CA))
+colnames(CA) <- as.Date(colnames(CA) , format = "%m.%d.%y")
+CA_sum <- colSums(CA)
+date <- colnames(CA)
+ready <- data.frame(date,CA_sum)
+ready$date <- as.Date(ready$date)
+
+## Making graph for state
+p <- ggplot(ready, aes(date,CA_sum)) + geom_point(color="darkblue") + theme_gray() + labs(x="", y="Confirmations", title = "COVID-19 confirmations in California")
+
+## plotting vertical lines
+p1 <- p + geom_vline(aes(xintercept=as.Date("2020-03-19")),color="green", linetype = "longdash") + geom_vline(aes(xintercept=as.Date("2021-01-29")),color="darkgreen", linetype = "longdash") + geom_vline(aes(xintercept=as.Date("2021-07-04")),color="darkred", linetype = "longdash") + geom_vline(aes(xintercept=as.Date("2021-12-20")),color="brown", linetype = "longdash")
+
+## labeling vertical lines
+p2 <- p1 + geom_text(aes(as.Date("2020-03-19"), 7000000, label ="SAH", hjust="right"))  + geom_text(aes(as.Date("2021-01-29"), 7000000, label ="EUA + 6 WEEKS", hjust="right")) + geom_text(aes(as.Date("2021-07-04"), 7000000, label ="Delta", hjust="right")) + geom_text(aes(as.Date("2021-12-20"), 7000000, label ="Omicron", hjust="right"))
+
+## adding tick marks
+p3 <- p2 + scale_x_continuous(breaks = c(as.Date("2020-03-19"), as.Date("2021-01-29"), as.Date("2021-07-04"), as.Date("2021-12-20")), labels = c("2020-03-19", "2020-01-29", "2020-07-04", "2021-12-20")) 
+
+
+c1 <- ggplot(dfConfirmedCAChartData,
+       aes(x = `Date`, y = `Confirmed Cases`,
+           group = `Admin2`)) +
+  #geom_line(aes(color=`Admin2`), size = 2) +     
+  geom_line(aes(color=`Admin2`), size = 2) +
+  ggtitle("") +
+  scale_y_continuous(labels = scales::comma) +
+  labs(x = "Date", y = "Cases", color = "")
+#+
+  #geom_vline(xintercept = as.numeric(as.Date("2020-03-19")),
+  #           color = "black"
+#             )
+
+################
+
+## plotting vertical lines
+c2 <- c1 + 
+ # geom_vline(aes(xintercept=as.Date("2020-03-19")),color="white", linetype = "longdash") +
+  
+geom_vline(aes(xintercept=as.Date("2021-03-19")),color="darkgreen", linetype = "longdash") + geom_vline(aes(xintercept=as.Date("2021-07-04")),color="darkred", linetype = "longdash") + geom_vline(aes(xintercept=as.Date("2021-11-20")),color="brown", linetype = "longdash")
+
+
+## labeling vertical lines
+c3 <- c2 + geom_text(aes(as.Date("2020-03-19"), 2500000, label ="", hjust="right"))  + geom_text(aes(as.Date("2021-01-29"), 2500000, label ="", hjust="right")) + geom_text(aes(as.Date("2021-07-04"), 2500000, label ="", hjust="right")) + geom_text(aes(as.Date("2021-12-20"), 2500000, label ="", hjust="right"))
+
+## adding tick marks
+c4 <- c3 + scale_x_continuous(breaks = c(as.Date("2020-03-19"), as.Date("2021-01-29"), as.Date("2021-07-04"), as.Date("2021-12-20")), labels = c("2020-07", "2021-01", "2021-07", "2022-01")) 
+
+#plot_grid(c4)
+#plot_grid(p3, ncol = 1, align = "h")
+plot_grid(p3, c4, ncol = 1, align = "h")
+```
+
+California has reached past 3.5million confirmed cases of COVID-19 since January 2020. Number of deaths has remained well below 100,000.
+
+### Objective 4 - Digging Deeper
+> Digging Deeper
+Although these plots do not tell the whole story, they are great for helping us determine where to look. Different cities may have different populations, population densities, cultural discrepancies, compliance, and city regulations to name a few. We will explore the role of population on these metrics using visualizations. Arrange two scatter plots using cowplot’s plot_grid to show the relationship between population and confirmed counts as well as death counts and confirmed counts. You will need to use a log transform on all variables to show such a relationship. Please consult the example below for an idea of what this may look like. From these graphs we can see that population greatly affects confirmations and deaths. This coincides with our plots above as Los Angeles’s population is 301% greater than San Diego’s population and 406% greater than Riverside’s population!
+
+### Objective 4.1 - Digging Deeper of Logarithm 2
+```{r obj4.1, echo=TRUE, eval=TRUE}
+# Population of load cities
+USpop <- read.csv("./data/Population_Data_Join.csv")
+
+## Population of CA cities
+Confirmed_needed <- select(confirmed_US, c(Combined_Key, ncol(confirmed_US)))
+
+Pop_confirmed <- left_join(Confirmed_needed, USpop, by = c("Combined_Key" = "Geographic.Area"))
+Pop_confirmed <- Pop_confirmed %>% drop_na()
+colnames(Pop_confirmed) = c("City", "Confirmed", "Population")
+
+# Make plot
+obj4_p1 <- ggplot(data = Pop_confirmed) +
+  geom_point(mapping = aes(x = Population, y = Confirmed), color = "darkblue") +
+  labs(
+    title = "Confirmations Vs. Population",
+    x = "Population",    
+    y = "Confirmation Counts"
+  ) + theme_bw() + 
+  theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black")) +
+  theme_minimal() +
+  scale_y_continuous(trans = "log2", limits=c(16,8388608), labels = scales::comma) +  
+  scale_x_continuous(trans = "log2", limits=c(128,4194304), labels = scales::comma) +  
+  theme(legend.title = element_blank())
+
+## Make death vs confirmation for CA
+Deaths_needed <- select(deaths_US, c(Combined_Key, ncol(deaths_US)))
+Con_death_comp <- left_join(Confirmed_needed, Deaths_needed, by = "Combined_Key")
+Con_death_comp <- Con_death_comp %>% drop_na()
+colnames(Con_death_comp) = c("City", "Confirmed", "Deaths")
+Con_death_comp <- filter(Con_death_comp, Confirmed > 0)
+
+## Use plot_grid
+obj4_p2 <- ggplot(data = Con_death_comp) +
+  geom_point(mapping = aes(x = Confirmed, y = Deaths), color = "darkred") +
+  labs(
+    title = "Deaths Vs. Confirmations",
+    x = "Confirmed Counts",
+    y = "Deaths Counts"
+    
+  ) + theme_bw() + 
+  theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black")) +
+  theme_minimal() +
+  scale_y_continuous(trans = "log2", limits=c(8,32768), labels = scales::comma) +  
+  scale_x_continuous(trans = "log2", limits=c(128,4194304), labels = scales::comma) +  
+  theme(legend.title = element_blank())
+
+# Side by side
+plot_grid(obj4_p1, obj4_p2)
+#plot_grid(obj4_p1, obj4_p2, vcol = 1)
+#plot_grid(obj4_p1, ncol = 1)
+#plot_grid(obj4_p2, ncol = 1)
+```
+
+### Objective 4.2 - Digging Deeper of Logarithm 10
+```{r ob4.2, including=FALSE, echo=TRUE, eval=FALSE}
+
+
+Population <- deaths_US$Population
+City <- deaths_US$Admin2
+Confirmation <- confirmed_US$'5/28/21'
+State <- confirmed_US$Province_State
+Deaths <- deaths_US$'5/28/21'
+
+data <- data.frame(City, State, Population, Confirmation, Deaths)
+  
+
+g1 <- ggplot(data = data) +
+  geom_point(mapping = aes(x = Population, y = Confirmation), color = "darkblue") +
+  labs(
+    title = "Confirmations Vs. Population",
+    y = "Confirmations Counts",
+    x = "Population"
+  ) +
+  scale_y_log10(limits=c(16,8388608), labels = scales::comma) +
+  scale_x_log10(limits=c(128,4194304), labels = scales::comma) 
+
+g2 <- ggplot(data = data) +
+  geom_point(mapping = aes(x = Confirmation, y = Deaths), color = "darkred") +
+  labs(
+    title = "Deaths Vs. Confirmations",
+    y = "Deaths Counts",
+    x = "Confirmed Counts"
+  ) +
+  scale_y_log10(limits=c(8,32768), labels = scales::comma) +
+  scale_x_log10(limits=c(128,4194304), labels = scales::comma)
+
+
+plot_grid(g1, g2) 
+  
+```
+
