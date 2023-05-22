@@ -199,14 +199,13 @@ The USA, India and France have the highest number of confirmed cases since 05/21
 > Narrowing Down Hot Spots
 Seeing the global map of COVID-19 cases results in the stark realization that some countries are more affected than others. In order to narrow down your studies, create a table using kable from knitr listing the top countries as far as confirmations and deaths (sum values for provinces of the same country into one value and show the country only). Now that we are using RMarkdown to create HTML files, we have much more options for how we display our table. For reference on how to customize tables using knitr, visit this website. Consult the table below for an example of a customized table ranking cases by country. While it is not required to replicate this table exactly, it would be a fantastic challenge to show off your knitr prowess.
 
-<!--```{r libraries, include=FALSE}
-
+```{r libraries, include=FALSE, echo=TRUE, eval=TRUE}
 library(dplyr)
 library(knitr)
-library(kableExtra)
+#library(kableExtra)
 library(tidyverse)
 library(tinytex)
-```-->
+```
 
 
 ```{r data_prep, echo=TRUE, eval=TRUE}
@@ -261,7 +260,7 @@ COVID_confirmed <- COVID_confirmed[, col_order]
 ```
 
 
-```{r table, echo=TRUE, eval=TRUE}
+```{r table, echo=TRUE, eval=FALSE}
 # Combine confirmations and deaths tables.
 COVID_Table <- cbind(COVID_confirmed, COVID_deaths)
 
